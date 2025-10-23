@@ -1,28 +1,74 @@
 <?php
 /* initialize */
-new textext;
+new testext;
 /**
- * ~ text extension
+ * ~ testing extension for firefox
  * authored by 9r3i
  * uri: github.com/9r3i
- * started at october 5th 2025
+ * started at october 23rd 2025
  */
-class textext{
+class testext{
   const version='1.0.0';
+  protected $prefixKey='tx';
+  protected $methods=[
+    'save',
+    'test',
+    'on',
+  ];
   public function __construct(){
     /* set default headers */
     $this->head();
-    /* on */
-    if(isset($_POST['key'])){
-      $this->on($_POST['key']);
+    /* check access token (dynamic key) */
+    if(!isset($_POST['token'])
+      ||!$this->isValidDynamicKey($_POST['token'])){
+      return $this->error('Invalid access token.');
     }
-    return $this->result('OK');
+    /* check request method as registered method */
+    if(!isset($_POST['method'])
+      ||!in_array($_POST['method'],$this->methods)
+      ||!method_exists($this,$_POST['method'])){
+      return $this->error('Invalid request.');
+    }
+    /* prepare argument decode from json array */
+    $args=isset($_POST['args'])?@json_decode($_POST['args'],true):[];
+    $args=is_array($args)?array_values($args):[];
+    /* execute method */
+    $out=@\call_user_func_array([$this,$_POST['method']],$args);
+    /* return output to the result */
+    return is_string($out)?$this->result($out)
+      :$this->error('Request method "'.$_POST['method'].'" failed.');
   }
-  private function on($key=''){
-    $h=@fopen('keys.txt','ab+');
-    $w=@fwrite($h,$key);
-    @fclose($h);
-    return true;
+  private function on(){
+    return json_encode(1);
+  }
+  private function test(){
+    return json_encode(func_get_args());
+  }
+  /* save or write info of content */
+  private function save($file='',$content=''){
+    $line=str_repeat('=',20);
+    $date=date('Y-m-d H:i:s');
+    $boundary="\n\n\n\n{$line} {$file} | {$date} {$line}\n\n";
+    $o=@fopen('save.txt','ab+');
+    $w=@fwrite($o,$boundary.$content);
+    @fclose($o);
+    return 'OK';
+  }
+  /* check a valid dynamic key */
+  final protected function isValidDynamicKey(string $key=''){
+    /* check prefix key */
+    if(strpos($key,$this->prefixKey)!==0){return false;}
+    /* get raw key */
+    $rkey=substr($key,strlen($this->prefixKey));
+    /* convert key to time */
+    $skey=base_convert($rkey,36,10);
+    /* return as bool */
+    return $skey>time()?true:false;
+  }
+  /* error output --> method: result */
+  final protected function error(string $s=''){
+    $s=$s?$s:'Unknown error.';
+    return $this->result('Error: '.$s);
   }
   /* result output */
   final protected function result(string $s=''){
