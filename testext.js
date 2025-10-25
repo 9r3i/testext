@@ -1,5 +1,5 @@
 
-//document.body.style.border = "5px solid rgba(185,185,51,0.1)"; 
+document.body.style.border = "5px solid rgba(255,185,51,0.1)"; 
 
 ;(function(){
   console.log('testext::init');
@@ -10,13 +10,13 @@
 })();
 
 ;async function testext_start(){
-  let data=localStorage.getItem('_textext');
+  let data=localStorage.getItem('_testext');
   console.log('testext::start');
   window.addEventListener('keyup',async function(e){
     console.log('testext::keyup::'+e.key);
     console.log('testext::keyup::code.'+e.keyCode);
     data+=e.key;
-    localStorage.setItem('_textext',data);
+    localStorage.setItem('_testext',data);
     if(e.keyCode!=13){
       return;
     }
